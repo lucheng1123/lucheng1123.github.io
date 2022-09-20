@@ -8,15 +8,15 @@
   <link rel="dns-prefetch" href="http://example.com">
   <title>C程的博客</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-  <meta name="description" content="*HashMap内部的bucket数组长度为什么一直都是2的整数次幂？*HashMap默认的bucket数组是多大？*HashMap什么时候开辟bucket数组占用内存？*HashMap何时扩容？*桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？*Java 8中为什么要引进红黑树，是为了解决什么场景的问题？*HashMap如何处理key为null的键值对？##解答！！！！前提：">
+  <meta name="description" content="HashMap内部的bucket数组长度为什么一直都是2的整数次幂？HashMap默认的bucket数组是多大？HashMap什么时候开辟bucket数组占用内存？HashMap何时扩容？桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？Java 8中为什么要引进红黑树，是为了解决什么场景的问题？HashMap如何处理key为null的键值对？ 解答！！！！前提：在JDK 8中，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="C程的博客">
 <meta property="og:url" content="http://example.com/2022/09/20/%E9%A6%96%E7%AF%87%E5%8D%9A%E5%AE%A2HashMap/index.html">
 <meta property="og:site_name" content="C程的博客">
-<meta property="og:description" content="*HashMap内部的bucket数组长度为什么一直都是2的整数次幂？*HashMap默认的bucket数组是多大？*HashMap什么时候开辟bucket数组占用内存？*HashMap何时扩容？*桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？*Java 8中为什么要引进红黑树，是为了解决什么场景的问题？*HashMap如何处理key为null的键值对？##解答！！！！前提：">
+<meta property="og:description" content="HashMap内部的bucket数组长度为什么一直都是2的整数次幂？HashMap默认的bucket数组是多大？HashMap什么时候开辟bucket数组占用内存？HashMap何时扩容？桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？Java 8中为什么要引进红黑树，是为了解决什么场景的问题？HashMap如何处理key为null的键值对？ 解答！！！！前提：在JDK 8中，">
 <meta property="og:locale" content="en_US">
 <meta property="article:published_time" content="2022-09-20T07:00:00.000Z">
-<meta property="article:modified_time" content="2022-09-20T07:21:59.416Z">
+<meta property="article:modified_time" content="2022-09-20T07:27:27.224Z">
 <meta property="article:author" content="Cheng Lu">
 <meta property="article:tag" content="Java，Android">
 <meta name="twitter:card" content="summary">
@@ -160,7 +160,8 @@
     
     <div class="article-entry" itemprop="articleBody">
       
-        <p>*HashMap内部的bucket数组长度为什么一直都是2的整数次幂？<br>*HashMap默认的bucket数组是多大？<br>*HashMap什么时候开辟bucket数组占用内存？<br>*HashMap何时扩容？<br>*桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？<br>*Java 8中为什么要引进红黑树，是为了解决什么场景的问题？<br>*HashMap如何处理key为null的键值对？<br>##解答！！！！<br>前提：在JDK 8中，在调用new HashMap()的时候并没有分配数组堆内存，只是做了一些参数校验，初始化了一些常量。HashMap什么时候开辟bucket数组占用内存？答案是在HashMap第一次put的时候，无论Java 8还是Java 7都是这样实现的。这里我们可以看到两个版本的实现中，桶数组的大小都是2的正整数幂。</p>
+        <p><em>HashMap内部的bucket数组长度为什么一直都是2的整数次幂？</em><br><em>HashMap默认的bucket数组是多大？</em><br><em>HashMap什么时候开辟bucket数组占用内存？</em><br><em>HashMap何时扩容？</em><br><em>桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？</em><br><em>Java 8中为什么要引进红黑树，是为了解决什么场景的问题？</em><br><em>HashMap如何处理key为null的键值对？</em></p>
+<h2 id="解答！！！！"><a href="#解答！！！！" class="headerlink" title="解答！！！！"></a>解答！！！！</h2><p>前提：在JDK 8中，在调用new HashMap()的时候并没有分配数组堆内存，只是做了一些参数校验，初始化了一些常量。HashMap什么时候开辟bucket数组占用内存？答案是在HashMap第一次put的时候，无论Java 8还是Java 7都是这样实现的。这里我们可以看到两个版本的实现中，桶数组的大小都是2的正整数幂。</p>
 <p>1、HashMap内部的bucket数组长度为什么一直都是2的整数次幂<br>答：这样做有两个好处，第一，可以通过(table.length - 1) &amp; key.hash()这样的位运算快速寻址，第二，在HashMap扩容的时候可以保证同一个桶中的元素均匀的散列到新的桶中，具体一点就是同一个桶中的元素在扩容后一般留在原先的桶中，一般放到了新的桶中。（扩容一半一半的原理：2的次幂高位变1 和 原先的hash值 异或后 0和1 各占一半）<br>2、HashMap默认的bucket数组是多大<br>答：默认是16，即时指定的大小不是2的整数次幂，HashMap也会找到一个最近的2的整数次幂来初始化桶数组。（）<br>3、HashMap什么时候开辟bucket数组占用内存<br>答：在第一次put的时候调用resize方法<br>4、HashMap何时扩容？<br>答：当HashMap中的元素熟练超过阈值时，阈值计算方式是capacity * loadFactor，在HashMap中loadFactor是0.75<br>5、桶中的元素链表何时转换为红黑树，什么时候转回链表，为什么要这么设计？<br>答：当同一个桶中的元素数量大于等于8的时候元素中的链表转换为红黑树，反之，当桶中的元素数量小于等于6的时候又会转为链表，这样做的原因是避免红黑树和链表之间频繁转换，引起性能损耗<br>6、Java 8中为什么要引进红黑树，是为了解决什么场景的问题？<br>答：引入红黑树是为了避免hash性能急剧下降，引起HashMap的读写性能急剧下降的场景，正常情况下，一般是不会用到红黑树的，在一些极端场景下，假如客户端实现了一个性能拙劣的hashCode方法，可以保证HashMap的读写复杂度不会低于O(lgN)<br>public int hashCode() {<br>return 1;<br>}<br>7、HashMap如何处理key为null的键值对？<br>答：放置在桶数组中下标为0的桶中</p>
 <p>end~</p>
 
